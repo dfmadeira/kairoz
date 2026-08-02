@@ -28,3 +28,12 @@ def simulate_closed_loop(K, m, c, k, T=10, dt=0.01):
     u[-1] = u[-2]
 
     return t, x, v, u
+
+
+def step_dynamics(x, v, u, m, c, k, dt):
+    a = (u - c * v - k * x) / m
+
+    v_next = v + a * dt
+    x_next = x + v * dt
+
+    return x_next, v_next

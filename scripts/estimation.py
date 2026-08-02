@@ -1,6 +1,122 @@
 import numpy as np
 
 
+class RLS:
+    def __init__(self, n_params=3, lam=0.99, delta=1000.0):
+
+        self.n = n_params
+        self.lam = lam  # forgetting factor
+
+        self.theta = np.zeros((n_params, 1))
+
+        self.P = np.eye(n_params) * delta
+
+        self.prev_x = None
+        self.prev_v = None
+
+        self.dt = 0.01
+
+    def update(self, x, v, u):
+
+        # -------------------------
+        # 1. compute acceleration
+        # -------------------------
+        if self.prev_v is None:
+            self.prev_x = x
+            self.prev_v = v
+            return self.theta.flatten()
+
+        a = (v - self.prev_v) / self.dt
+
+        # regression vector
+        phi = np.array([[u], [v], [x]])
+
+        # -------------------------
+        # 2. RLS gain
+        # -------------------------
+        P_phi = self.P @ phi
+        gain_den = self.lam + phi.T @ P_phi
+
+        K = P_phi / gain_den
+
+        # -------------------------
+        # 3. prediction error
+        # -------------------------
+        y = np.array([[a]])
+
+        err = y - phi.T @ self.theta
+
+        # -------------------------
+        # 4. parameter update
+        # -------------------------
+        self.theta = self.theta + K @ err
+
+        # -------------------------
+        # 5. covariance update
+        # -------------------------
+        self.P = (self.P - K @ phi.T @ self.P) / self.lam
+
+        # store state
+        self.prev_v = v
+        self.prev_x = x
+
+        return self.theta.flatten()
+
+
+class ThetaEstimator:
+    def __init__(self, mode="recursive", window_size=200, update_every=1):
+        self.mode = mode
+        self.window_size = window_size
+        self.update_every = update_every
+
+        self.buffer = []
+        self.theta = None
+
+    def update(self, i, x, v, u):
+
+        self.buffer.append((x, v, u))
+
+        if i % self.update_every != 0:
+            return None
+
+        if self.mode == "recursive":
+            return self._recursive_update()
+
+        elif self.mode == "window":
+            return self._window_update()
+
+        else:
+            raise ValueError("Unknown mode")
+
+    def _window_update(self):
+        data = self.buffer[-self.window_size :]
+
+        # reuse your existing estimator here
+        # you already have estimate_parameters(...)
+        t_dummy = np.arange(len(data)) * 0.01
+
+        x = np.array([d[0] for d in data])
+        v = np.array([d[1] for d in data])
+        u = np.array([d[2] for d in data])
+
+        theta = estimate_parameters(t_dummy, x, v, u, dt=0.01)
+
+        self.theta = theta
+        return theta
+
+    def _recursive_update(self):
+        # TEMPORARY: for now just behave like window size = 1
+        x, v, u = self.buffer[-1]
+
+        t_dummy = np.array([0.0])
+        theta = estimate_parameters(
+            t_dummy, np.array([x]), np.array([v]), np.array([u]), dt=0.01
+        )
+
+        self.theta = theta
+        return theta
+
+
 def estimate_parameters(t, x, v, u, dt):  # linear
     # approximate acceleration
     a = np.zeros_like(v)

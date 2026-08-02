@@ -1,4 +1,69 @@
+import math
+
 import numpy as np
+
+# Disturbances
+
+
+class ConstantDisturbance:
+    def __init__(self, F0):
+        self.F0 = F0
+
+    def force(self, t, x, v):
+        return self.F0
+
+
+class SineDisturbance:
+    def __init__(self, A, w, phi=0):
+        self.A = A
+        self.w = w
+        self.phi = phi
+
+    def force(self, t, x, v):
+        return self.A * math.sin(self.w * t + self.phi)
+
+
+class ImpulseDisturbance:
+    def __init__(self, t0, duration, A):
+        self.t0 = t0
+        self.t1 = t0 + duration
+        self.A = A
+
+    def force(self, t, x, v):
+        if self.t0 <= t <= self.t1:
+            return self.A
+        return 0.0
+
+
+class OUProcess:
+    def __init__(self, theta, sigma, dt):
+        self.theta = theta
+        self.sigma = sigma
+        self.dt = dt
+        self.state = 0.0
+
+    def force(self, t, x, v):
+        # state influences drift (this is the key change)
+        mean = 0.1 * v + 0.05 * x  # coupling to system
+
+        dw = (
+            -self.theta * (self.state - mean) * self.dt
+            + self.sigma * np.sqrt(self.dt) * np.random.randn()
+        )
+
+        self.state += dw
+        return self.state
+
+
+class CompositeDisturbance:
+    def __init__(self, disturbances):
+        self.disturbances = disturbances
+
+    def force(self, t, x, v):
+        total = 0.0
+        for d in self.disturbances:
+            total += d.force(t, x, v)
+        return total
 
 
 def mass_spring_damper(
@@ -10,7 +75,6 @@ def mass_spring_damper(
     T=10.0,
     dt=0.01,
     u_func=None,
-    disturbance_std=0.0,
     seed=None,
 ):
     """
@@ -41,8 +105,16 @@ def mass_spring_damper(
 
         u[i] = ui
 
-        # disturbance (white noise)
-        disturbance = disturbance_std * np.random.randn()
+        # disturbance
+        disturbance_model = CompositeDisturbance(
+            [
+                ConstantDisturbance(F0=1.5),  # steady-state error
+                SineDisturbance(A=2.0, w=1.2),  # oscillatory forcing
+                OUProcess(theta=2.0, sigma=0.8, dt=0.01),  # correlated noise
+                ImpulseDisturbance(t0=7.0, duration=0.5, A=5.0),  # shock event
+            ]
+        )
+        disturbance = disturbance_model.force(t[i], x[i], v[i])
 
         # dynamics
         a = (ui - c * v[i] - k * x[i] + disturbance) / m
