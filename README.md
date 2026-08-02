@@ -9,7 +9,16 @@ All rights reserved. Code is public for portfolio review only; no permission is 
 - State estimation
 - Classical controller
 
-### next version
+### version 0.2
 - Disturbance injection
-- Neural residual dynamics
-- AI-assisted control
+- Neural residual dynamics (through MLP)
+- ML-assisted control
+
+### next versions
+- Realistic sensor models
+- Sensor noise and bias
+- Sampling and quantization effects
+- Sensor delay simulation
+- Extended Kalman Filter (EKF)
+- State estimation from noisy measurements
+- Configurable experiment framework
