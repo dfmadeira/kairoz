@@ -1,8 +1,8 @@
+import numpy as np
 from controller import Excitation, run_lqr_experiment
 from dynamics import mass_spring_damper
-from plotting import plot_results, plot_results1, plot_mlp_comparison, plot_online_learning, plot_theta_error
-from nn import train_residual_mlp, predict_residual, OnlineResidualLearner
-import numpy as np
+from nn import OnlineResidualLearner, predict_residual, train_residual_mlp
+from plotting import *
 
 # if __name__ == "__main__":
 #     # t, x, v, u = mass_spring_damper(u_func=Excitation("prbs"))
@@ -12,11 +12,22 @@ import numpy as np
 
 
 if __name__ == "__main__":
-
     # -------------------------------------------------
     # Generate simulation
     # -------------------------------------------------
-    xs, vs, us, disturbances, residuals, online_prediction, losses, theta_history = run_lqr_experiment()
+    (
+        xs,
+        vs,
+        us,
+        disturbances,
+        residuals,
+        online_prediction,
+        losses,
+        theta_history,
+        x_GPS,
+        x_Encoder,
+        x_Kalman,
+    ) = run_lqr_experiment()
 
     plot_results(
         xs,
@@ -57,7 +68,6 @@ if __name__ == "__main__":
     #     models.append(model)
     #     predictions.append(y_hat)
 
-
     # # -------------------------------------------------
     # # Compare predictions
     # # -------------------------------------------------
@@ -78,7 +88,18 @@ if __name__ == "__main__":
 
     theta_true = np.array([1, 0.4, 2])
 
-    plot_theta_error(
-        theta_history,
-        theta_true
+    plot_theta_error(theta_history, theta_true)
+
+    plot_position_measurements(
+        xs,
+        x_GPS,
+        x_Encoder,
+        x_Kalman,
+    )
+
+    plot_kalman_position(xs, x_Kalman)
+
+    plot_kalman_error(
+        xs,
+        x_Kalman,
     )

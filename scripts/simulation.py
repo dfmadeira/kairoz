@@ -36,4 +36,4 @@ def step_dynamics(x, v, u, m, c, k, dt):
     v_next = v + a * dt
     x_next = x + v * dt
 
-    return x_next, v_next
+    return x_next, v_next, a
