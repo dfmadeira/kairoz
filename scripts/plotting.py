@@ -21,6 +21,148 @@ import numpy as np
 #     plt.grid()
 #     plt.savefig("u.png")
 
+def plot_position_measurements(
+    xs,
+    x_gps,
+    x_encoder,
+    x_kalman,
+    save_path="position_measurements.png",
+):
+    """
+    Plot true position against sensor measurements
+    and Kalman-filtered position.
+    """
+
+    gps_error = np.asarray(xs) - np.asarray(x_gps)
+    encoder_error = np.asarray(xs) - np.asarray(x_encoder)
+    kf_error = np.asarray(xs) - np.asarray(x_kalman)
+
+    print("GPS MAE:", np.mean(np.abs(gps_error)))
+    print("Encoder MAE:", np.mean(np.abs(encoder_error)))
+    print("KF MAE:", np.mean(np.abs(kf_error)))
+
+    plt.figure(figsize=(10, 5))
+
+    # Measurements (behind)
+    plt.plot(
+        x_gps,
+        label="GPS",
+        color="tab:blue",
+        alpha=0.45,
+        linewidth=1.5,
+        zorder=1,
+    )
+
+    plt.plot(
+        x_encoder,
+        label="Encoder",
+        color="tab:red",
+        alpha=0.45,
+        linewidth=1.5,
+        zorder=2,
+    )
+
+    # Kalman estimate
+    plt.plot(
+        x_kalman,
+        label="Kalman",
+        color="tab:green",
+        linewidth=2.0,
+        zorder=3,
+    )
+
+    # Ground truth (front)
+    plt.plot(
+        xs,
+        label="Truth",
+        color="black",
+        linewidth=2.5,
+        zorder=4,
+    )
+
+    plt.title("Position Measurements")
+    plt.xlabel("Time Step")
+    plt.ylabel("Position [m]")
+
+    plt.grid(True, alpha=0.3)
+    plt.legend()
+
+    plt.tight_layout()
+    plt.savefig(save_path)
+    plt.close()
+
+def plot_kalman_position(
+    xs,
+    x_kalman,
+    save_path="kalman_position.png",
+):
+    """
+    Plot true position against Kalman-filtered position.
+    """
+
+    plt.figure(figsize=(10, 5))
+
+    # Kalman estimate
+    plt.plot(
+        x_kalman,
+        label="Kalman",
+        color="tab:green",
+        linewidth=3,
+        zorder=1,
+    )
+
+    # Ground truth
+    plt.plot(
+        xs,
+        label="Truth",
+        color="black",
+        linewidth=1,
+        zorder=2,
+    )
+
+    plt.title("Kalman Position Estimate")
+    plt.xlabel("Time Step")
+    plt.ylabel("Position [m]")
+
+    plt.grid(True, alpha=0.3)
+    plt.legend()
+
+    plt.tight_layout()
+    plt.savefig(save_path)
+    plt.close()
+
+def plot_kalman_error(
+    xs,
+    x_kalman,
+    save_path="kalman_position_error.png",
+):
+    """
+    Plot Kalman position estimation error.
+    """
+
+    error = np.asarray(xs) - np.asarray(x_kalman)
+
+    plt.figure(figsize=(10, 5))
+
+    plt.plot(
+        error,
+        label="Position Error",
+        linewidth=1.5,
+    )
+
+    print("Max error:", np.max(np.abs(error)))
+    print("Mean absolute error:", np.mean(np.abs(error)))
+    print("RMSE:", np.sqrt(np.mean(error**2)))
+
+    plt.title("Kalman Position Estimation Error")
+    plt.xlabel("Time Step")
+    plt.ylabel("Error [m]")
+
+    plt.grid(True, alpha=0.3)
+
+    plt.tight_layout()
+    plt.savefig(save_path)
+    plt.close()
 
 def plot_closed_loop_results(t, x, v, u, label="system"):
 
