@@ -1,5 +1,8 @@
 # kairoz
-Kairoz (from Greek Kairos: the opportune moment for the right action) is a modular framework for System Identification and Control. It focuses on aligning dynamic models with data to structure deterministic, robust control loops using a modular architecture built in C++ and Python.
+Kairoz (from Greek Kairos: the opportune moment for the right action) is a modular framework for System Identification and Control. It aims at being a modular estimation framework in which each subsystem reconstructs a different unknown aspect of a dynamical system, enabling progressively more accurate modeling and control.
+
+
+It focuses on aligning dynamic models with data to structure deterministic, robust control loops using a modular architecture built in C++ and Python.
 
 All rights reserved. Code is public for portfolio review only; no permission is granted for reuse or modification.
 
